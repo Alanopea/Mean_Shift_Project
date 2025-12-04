@@ -24,7 +24,7 @@ The Mean Shift algorithm is a non-parametric clustering technique that does not 
 * **Labels:** An array assigning each input point to the nearest cluster center. Shape: `(n_samples,)`.
 
 ### Parameters
-* `bandwidth` (float): The radius of the neighborhood (kernel size). Default: `None` (must be estimated or provided).
+* `bandwidth` (float): The radius of the neighborhood (kernel size). Default: `4.0` (must be estimated or provided).
 * `max_iter` (int): The maximum number of iterations to prevent infinite loops (safety break). Default: `300`.
 * `tolerance` (float): The threshold for convergence. If the shift in centroid position is less than this value, the algorithm stops. Default: `1e-3` (0.001).
 
