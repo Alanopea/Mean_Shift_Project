@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class MeanShift:
     """
     Mean Shift clustering implementation using a Flat (Uniform) Kernel.
@@ -56,7 +57,7 @@ class MeanShift:
         self.centroids = self._prune_centroids(current_centroids)
 
     def _prune_centroids(self, points):
-        """
+        """ 
         Filter converged points to remove duplicates within the bandwidth radius.
 
         Parameters
