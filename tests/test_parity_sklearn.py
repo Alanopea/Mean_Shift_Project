@@ -11,7 +11,7 @@ def test_parity_with_sklearn():
         random_state=0
     )
 
-    bandwidth = 2.0
+    bandwidth = 1.5
 
     my_ms = MeanShift(bandwidth=bandwidth)
     my_ms.fit(X)
