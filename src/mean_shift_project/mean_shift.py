@@ -2,110 +2,104 @@ import numpy as np
 
 class MeanShift:
     """
-    A simple implementation of Mean Shift clustering algorithm.
+    Mean Shift clustering implementation using a Flat (Uniform) Kernel.
+
+    Parameters
+    ----------
+    bandwidth : float, default=1.0
+        Radius of the flat kernel. Points within this distance contribute 
+        equally to the mean shift; points outside are ignored.
     
-    Attributes:
-        bandwidth (float): The radius of the neighborhood (kernel size).
-        max_iter (int): Maximum number of iterations for convergence.
-        tol (float): Tolerance for convergence (stopping criterion).
-        centroids (ndarray): Coordinates of cluster centers found.
+    max_iter : int, default=300
+        Maximum number of iterations for the centroid shift loop.
+    
+    tol : float, default=1e-3
+        Tolerance for convergence. The algorithm stops if the shift in centroids
+        is less than this value.
     """
 
-    def __init__(self, bandwidth=4.0, max_iter=300, tol=1e-3):
-        """
-        Initialize the MeanShift model.
-
-        Parameters:
-        -----------
-        bandwidth : float, optional (default=4.0)
-            Radius of the kernel window.
-        max_iter : int, optional (default=300)
-            Maximum number of iterations per point.
-        tol : float, optional (default=1e-3)
-            Convergence threshold. If the shift is smaller than this, the algorithm stops.
-        """
+    def __init__(self, bandwidth=1.0, max_iter=300, tol=1e-3):
         self.bandwidth = bandwidth
         self.max_iter = max_iter
         self.tol = tol
         self.centroids = None
 
-    def fit(self, data):
+    def fit(self, X):
         """
-        Perform clustering on the input data.
+        Perform clustering on data X.
 
-        Parameters:
-        -----------
-        data : array-like of shape (n_samples, n_features)
-            Input data points.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Input data.
         """
-        # Ensure data is a float array for precise calculations
-        X = np.array(data, dtype=float)
+        current_centroids = np.array(X, copy=True)
         
-        # Initialize centroids with all data points
-        current_centroids = np.copy(X)
-        
-        for iteration in range(self.max_iter):
-            new_centroids = []
-            max_shift = 0.0
+        for _ in range(self.max_iter):
+            prev_centroids = np.array(current_centroids, copy=True)
             
-            # --- Modular Step: Mean Update ---
             for i, centroid in enumerate(current_centroids):
-                # Calculate Euclidean distances from the current centroid to all points
                 distances = np.linalg.norm(X - centroid, axis=1)
                 
-                # --- Kernel Computation (Flat Kernel) ---
-                # Select points within the bandwidth
+                # Flat Kernel: Select points strictly within the bandwidth
                 points_within_bandwidth = X[distances < self.bandwidth]
                 
-                # Calculate new mean position
+                # Update centroid to the arithmetic mean of neighbors
                 if len(points_within_bandwidth) > 0:
-                    new_centroid = np.mean(points_within_bandwidth, axis=0)
-                else:
-                    # If no points in radius (orphan), stay put
-                    new_centroid = centroid
-                
-                new_centroids.append(new_centroid)
-                
-                # Track the shift distance for convergence check
-                shift = np.linalg.norm(new_centroid - centroid)
-                if shift > max_shift:
-                    max_shift = shift
+                    current_centroids[i] = np.mean(points_within_bandwidth, axis=0)
             
-            current_centroids = np.array(new_centroids)
-            
-            # --- Stopping Condition ---
-            if max_shift < self.tol:
-                # print(f"Converged at iteration {iteration}")
+            # Check for convergence
+            shift = np.linalg.norm(current_centroids - prev_centroids)
+            if shift < self.tol:
                 break
         
-        # --- Post-processing: Prune duplicate centroids ---
-        # Rounding helps to group centroids that are extremely close
-        self.centroids = np.unique(np.round(current_centroids, decimals=3), axis=0)
-        
-    def predict(self, data):
-        """
-        Predict the closest cluster each sample in data belongs to.
+        self.centroids = self._prune_centroids(current_centroids)
 
-        Parameters:
-        -----------
-        data : array-like of shape (n_samples, n_features)
+    def _prune_centroids(self, points):
+        """
+        Filter converged points to remove duplicates within the bandwidth radius.
+
+        Parameters
+        ----------
+        points : np.array
+            The converged points after the shifting phase.
+
+        Returns
+        -------
+        np.array
+            Unique centroids.
+        """
+        unique_centroids = []
+        
+        for point in points:
+            if not unique_centroids:
+                unique_centroids.append(point)
+                continue
+            
+            centroids_array = np.array(unique_centroids)
+            dists = np.linalg.norm(centroids_array - point, axis=1)
+            
+            if np.all(dists > self.bandwidth):
+                unique_centroids.append(point)
+        
+        return np.array(unique_centroids)
+
+    def predict(self, X):
+        """
+        Predict the closest cluster centroid for each sample in X.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
             New data to predict.
 
-        Returns:
-        --------
-        labels : ndarray of shape (n_samples,)
+        Returns
+        -------
+        labels : np.array of shape (n_samples,)
             Index of the cluster each sample belongs to.
         """
         if self.centroids is None:
             raise Exception("Model not fitted yet. Call 'fit' first.")
             
-        data = np.array(data)
-        predictions = []
-        
-        for point in data:
-            # Find the nearest centroid for each point
-            distances = np.linalg.norm(self.centroids - point, axis=1)
-            closest_centroid_idx = np.argmin(distances)
-            predictions.append(closest_centroid_idx)
-            
-        return np.array(predictions)
+        distances = np.linalg.norm(X[:, np.newaxis] - self.centroids, axis=2)
+        return np.argmin(distances, axis=1)
