@@ -23,7 +23,6 @@ Poniżej znajdziesz kompletny przewodnik po projekcie: od teorii, przez wyniki e
    Contribution Guide <contributing>
    License <license>
    Authors <authors>
-   Changelog <changelog>
 
 ---------------------------
 
@@ -32,7 +31,8 @@ API Reference
 
 Pełna dokumentacja klas i metod wygenerowana z kodu źródłowego.
 
-.. automodule:: mean_shift_project.mean_shift
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. toctree::
+   :maxdepth: 2
+   :caption: Moduły Python:
+
+   api/modules

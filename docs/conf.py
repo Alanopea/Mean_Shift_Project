@@ -10,6 +10,7 @@
 import os
 import sys
 import shutil
+import inspect
 
 # -- Path setup --------------------------------------------------------------
 
@@ -28,32 +29,26 @@ sys.path.insert(0, os.path.join(__location__, "../src"))
 # setup.py install" in the RTD Advanced Settings.
 # Additionally it helps us to avoid running apidoc manually
 
-try:  # for Sphinx >= 1.7
+def run_apidoc(_):
     from sphinx.ext import apidoc
-except ImportError:
-    from sphinx import apidoc
+    import os
+    import sys
+    
+    # Ścieżki
+    cur_dir = os.path.abspath(os.path.dirname(__file__))
+    output_dir = os.path.join(cur_dir, "api")
+    module_dir = os.path.join(cur_dir, "../src/mean_shift_project")
 
-output_dir = os.path.join(__location__, "api")
-module_dir = os.path.join(__location__, "../src/mean_shift_project")
-try:
-    shutil.rmtree(output_dir)
-except FileNotFoundError:
-    pass
+    # Komenda, którą Sphinx wykona "pod spodem"
+    # -f: force (nadpisz stare pliki)
+    # -o: output directory
+    # -e: separate page for each module (opcjonalnie, dla ładniejszego podziału)
+    cmd_line = f"--implicit-namespaces -f -o {output_dir} {module_dir}"
+    
+    apidoc.main(cmd_line.split(" "))
 
-try:
-    import sphinx
-
-    cmd_line = f"sphinx-apidoc --implicit-namespaces -f -o {output_dir} {module_dir}"
-
-    args = cmd_line.split(" ")
-    if tuple(sphinx.__version__.split(".")) >= ("1", "7"):
-        # This is a rudimentary parse_version to avoid external dependencies
-        args = args[1:]
-
-    apidoc.main(args)
-except Exception as e:
-    print("Running `sphinx-apidoc` failed!\n{}".format(e))
-
+def setup(app):
+    app.connect('builder-inited', run_apidoc)
 # -- General configuration ---------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -72,8 +67,30 @@ extensions = [
     "sphinx.ext.ifconfig",
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
+    "sphinx.ext.linkcode",
     "myst_parser",
 ]
+
+# Autodoc and Napoleon settings
+autoclass_content = "both"
+
+autodoc_default_options = {
+    "members": True,
+    "undoc-members": False,
+    "show-inheritance": True,
+    "member-order": "bysource",
+}
+
+autodoc_typehints = "description"
+autosummary_generate = True
+
+# Napoleon settings (NumPy style)
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True
+napoleon_include_init_with_doc = True
+napoleon_use_param = True
+napoleon_use_rtype = True
+napoleon_preprocess_types = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -154,14 +171,16 @@ todo_emit_warnings = True
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'sphinx_rtd_theme'
+html_theme = "sphinx_rtd_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    "sidebar_width": "300px",
-    "page_width": "1200px"
+    "prev_next_buttons_location": "bottom",
+    "collapse_navigation": False,
+    "sticky_navigation": True,
+    "navigation_depth": 3,
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
@@ -187,6 +206,11 @@ html_theme_options = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
+
+# Custom CSS files to include in the HTML build
+html_css_files = [
+    "custom.css",
+]
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -283,5 +307,34 @@ intersphinx_mapping = {
     "setuptools": ("https://setuptools.pypa.io/en/stable/", None),
     "pyscaffold": ("https://pyscaffold.org/en/stable", None),
 }
+
+
+def linkcode_resolve(domain, info):
+    """
+    Try to determine the URL corresponding to Python object for linkcode.
+
+    Expects environment variable ``GITHUB_REPO`` set to "owner/repo" and
+    optional ``GITHUB_VERSION`` (branch or tag), otherwise returns None.
+    """
+    if domain != "py":
+        return None
+    module = info.get("module")
+    fullname = info.get("fullname")
+    if not module or not fullname:
+        return None
+    try:
+        obj = sys.modules[module]
+        for part in fullname.split("."):
+            obj = getattr(obj, part)
+        fn = inspect.getsourcefile(obj)
+        source, lineno = inspect.getsourcelines(obj)
+    except Exception:
+        return None
+    repo = os.getenv("GITHUB_REPO")
+    if not repo:
+        return None
+    version = os.getenv("GITHUB_VERSION", "main")
+    fn = os.path.relpath(fn, start=os.path.abspath(os.path.join(__location__, "..")))
+    return f"https://github.com/{repo}/blob/{version}/{fn}#L{lineno}-L{lineno+len(source)-1}"
 
 print(f"loading configurations for {project} {version} ...", file=sys.stderr)

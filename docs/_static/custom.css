@@ -1,0 +1,16 @@
+/* Custom styles for docs */
+
+figure {
+    text-align: center;
+}
+
+figure img,
+figure svg {
+    max-width: 80%;
+    height: auto;
+    margin: 0.5em auto;
+}
+
+.literal-block {
+    font-size: 0.95em;
+}

@@ -17,6 +17,15 @@ class MeanShift:
     tol : float, default=1e-3
         Tolerance for convergence. The algorithm stops if the shift in centroids
         is less than this value.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> X = np.array([[0.0], [0.1], [5.0]])
+    >>> ms = MeanShift(bandwidth=1.0)
+    >>> ms.fit(X)
+    >>> ms.centroids is not None
+    True
     """
 
     def __init__(self, bandwidth=1.0, max_iter=300, tol=1e-3):
