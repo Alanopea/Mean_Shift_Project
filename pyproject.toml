@@ -1,9 +1,31 @@
 [build-system]
-# AVOID CHANGING REQUIRES: IT WILL BE UPDATED BY PYSCAFFOLD!
-requires = ["setuptools>=46.1.0", "setuptools_scm[toml]>=5"]
+requires = ["setuptools>=61.0.0", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "mean-shift-project"
+dynamic = ["version"]  # <--- TO JEST KLUCZOWE
+description = "Mean shift for data analysis and clustering"
+readme = "README.rst"
+license = { file = "LICENSE.txt" }
+authors = [
+    { name = "Igor Redko", email = "iredko31@gmail.com" },
+    { name = "Kamil Kras", email = "kras.kkamil@gmail.com" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+requires-python = ">=3.8"
+
 [tool.setuptools_scm]
-# For smarter version schemes and other configuration options,
-# check out https://github.com/pypa/setuptools_scm
-version_scheme = "no-guess-dev"
+version_scheme = "post-release"
+write_to = "src/mean_shift_project/_version.py"

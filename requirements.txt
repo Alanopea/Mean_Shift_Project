@@ -1,6 +1,6 @@
 sphinx
 sphinx-rtd-theme
-myst-parser
+# Add project dependencies here so Sphinx can import your code:
 numpy
 scipy
 scikit-learn

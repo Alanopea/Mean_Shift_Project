@@ -1,0 +1,6 @@
+setuptools
+pytest
+pytest-cov
+tox
+sphinx
+sphinx-rtd-theme
