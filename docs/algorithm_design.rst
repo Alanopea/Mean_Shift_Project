@@ -1,38 +1,39 @@
 Algorithm design — Mean Shift
 =============================
 
-W tym rozdziale przedstawiamy projekt i matematyczne podstawy algorytmu Mean Shift
-użytego w tym projekcie. Zakres: intuicja, notacja, pseudokod, złożoność i przykłady
-z ilustracjami.
+In this chapter we present the design and mathematical foundations of the Mean
+Shift algorithm used in this project. Scope: intuition, notation, pseudocode,
+complexity, and usage examples with illustrations.
 
 Overview
 --------
 
-Mean Shift to algorytm grupowania (clustering) typu non-parametric, który
-szuka trybów (modes) rozkładu gęstości poprzez iteracyjne przesuwanie
-punktów w stronę lokalnego środka masy w obrębie określonego okna (bandwidth).
+Mean Shift is a non-parametric clustering algorithm that seeks density modes by
+iteratively shifting points toward the local center of mass within a specified
+window (the bandwidth).
 
-Notacja i równania
-------------------
+Notation and equations
+----------------------
 
-Niech X = {x_i}_{i=1..n} oznacza zbiór punktów w R^d. Dla punktu x definiujemy
-sąsiedztwo N(x) = {x_i : ||x_i - x|| < h}, gdzie h to bandwidth (promień).
-Wersja "flat kernel" (równo ważone punkty) aktualizuje punkt x do:
+Let X = {x_i}_{i=1..n} denote a set of points in R^d. For a point x we define the
+neighborhood N(x) = {x_i : ||x_i - x|| < h}, where h is the bandwidth (radius).
+The "flat kernel" (uniform weights) version updates x to:
 
 .. math::
    x' = \frac{1}{|N(x)|}\sum_{x_i\in N(x)} x_i
 
-Wektor mean-shift można zapisać jako różnicę między nową pozycją a starą:
+The mean-shift vector can be written as the difference between the new and old
+positions:
 
 .. math::
    m(x) = x' - x
 
-Pseudokod
+Pseudocode
 ----------
 
 .. code-block:: text
 
-   Algorytm MeanShift(X, h, max_iter, tol):
+   MeanShift algorithm(X, h, max_iter, tol):
        centroids = X.copy()
        for t in range(max_iter):
            prev = centroids.copy()
@@ -44,33 +45,34 @@ Pseudokod
                break
        return prune_centroids(centroids, h)
 
-Złożoność i uwagi praktyczne
-----------------------------
+Complexity and practical notes
+------------------------------
 
-- Złożoność brutto: O(n^2) na iterację przy prostym implementowaniu (liczenie
-  odległości między wszystkimi parami punktów); można przyspieszyć stosując
-  struktury przestrzenne (KDTree) lub przybliżone wyszukiwanie sąsiadów.
-- Wybór bandwidth ma kluczowy wpływ: małe h => więcej klastrów; duże h => mniej.
-- Konwergencja zależy od tolerancji i liczby iteracji.
+- Naive cost: O(n^2) per iteration for a straightforward implementation (pairwise
+  distance computations); performance can be improved using spatial structures
+  (KDTree) or approximate neighbor search.
+- The choice of bandwidth strongly influences results: small h => more clusters;
+  large h => fewer clusters.
+- Convergence depends on tolerance and the maximum number of iterations.
 
-Ilustracja działania
---------------------
+Illustration
+------------
 
 .. figure:: _static/mean_shift_diagram.svg
-   :alt: przykładowy diagram Mean Shift
+   :alt: example Mean Shift diagram
    :align: center
 
-   Przykładowy krok Mean Shift: punkty (kropki) i przesunięcie centroidu (strzałka).
+   Example Mean Shift step: points (dots) and centroid shift (arrow).
 
-Przykład użycia
-----------------
+Example usage
+-------------
 
-Poniższy przykład demonstruje prosty przebieg algorytmu.
+The following example demonstrates a simple run of the algorithm.
 
 .. literalinclude:: ../docs/examples/mean_shift_example.py
    :language: python
 
-Referencje
+References
 ----------
 
 - Comaniciu, D. and Meer, P. (2002). Mean shift: A robust approach toward feature
